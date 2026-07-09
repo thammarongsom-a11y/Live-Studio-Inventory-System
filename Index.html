@@ -1,1 +1,875 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script type="text/javascript">google.charts.load('current', {'packages':['corechart']});</script>
+  
+  <style>
+    /* CSS Variables for Clean Theme Switching */
+    :root {
+      --bg-body: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-sidebar: #ffffff;
+      --text-main: #334155;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --table-thead: #f8fafc;
+    }
+    body.dark-theme {
+      --bg-body: #0f172a;
+      --bg-card: #1e293b;
+      --bg-sidebar: #1e293b;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+      --table-thead: #334155;
+    }
 
+    body { 
+      background-color: var(--bg-body); 
+      font-family: 'Prompt', sans-serif; 
+      color: var(--text-main);
+      transition: all 0.3s ease;
+    }
+    
+    /* Layout Elements */
+    .sidebar-container {
+      background-color: var(--bg-sidebar);
+      border-color: var(--border-color) !important;
+    }
+    .top-action-bar {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+    }
+
+    /* Vertical Navigation Layout Style */
+    .nav-pills .nav-link { 
+      border-radius: 12px; 
+      padding: 12px 18px; 
+      font-weight: 500; 
+      color: var(--text-muted); 
+      background: transparent; 
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+      margin-bottom: 8px;
+    }
+    .nav-pills .nav-link:hover {
+      background: var(--table-thead);
+      color: var(--text-main);
+    }
+    .nav-pills .nav-link.active { 
+      background: #4f46e5 !important; 
+      color: white !important; 
+      box-shadow: 0 8px 15px -3px rgba(79, 70, 229, 0.3);
+      border-color: #4f46e5;
+    }
+    
+    /* Cards Dynamic Styles */
+    .card {
+      border: 1px solid var(--border-color) !important;
+      border-radius: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background-color: var(--bg-card) !important;
+    }
+    .product-card:hover { 
+      transform: translateY(-6px); 
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.08); 
+    }
+    .card-img-top { 
+      height: 170px; 
+      object-fit: cover; 
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+    }
+    
+    /* Badges & Form Overrides */
+    .stock-badge { 
+      position: absolute; top: 12px; right: 12px; z-index: 10; font-weight: 500; padding: 6px 12px; border-radius: 30px;
+    }
+    .delete-btn { position: absolute; top: 12px; left: 12px; z-index: 10; opacity: 0; transition: opacity 0.2s ease; }
+    .product-card:hover .delete-btn { opacity: 1; }
+    .category-pill { background: var(--table-thead); color: #6366f1; font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 30px; display: inline-block; margin-bottom: 8px; }
+    .border-dashed { border-style: dashed !important; border-width: 2px !important; border-color: var(--border-color) !important; }
+    
+    /* Dashboard Stat Cards Theme */
+    .stat-card { position: relative; overflow: hidden; color: white; }
+    .stat-card::after { content: ''; position: absolute; right: -15px; bottom: -15px; font-family: "Font Awesome 6 Free"; font-weight: 900; font-size: 5.5rem; opacity: 0.15; pointer-events: none; }
+    .stat-1::after { content: "\f1b3"; } .stat-2::after { content: "\f071"; } .stat-3::after { content: "\f00c"; } .stat-4::after { content: "\f017"; }
+    
+    /* Global Bootstrap Custom Intersections */
+    .table th { font-weight: 600; color: var(--text-main) !important; background-color: var(--table-thead) !important; }
+    .table td { color: var(--text-main) !important; }
+    .text-dark { color: var(--text-main) !important; }
+    .text-muted { color: var(--text-muted) !important; }
+    .badge-pill-custom { border-radius: 30px; padding: 5px 12px; font-weight: 500; }
+    .form-control, .form-select { background-color: var(--bg-body) !important; color: var(--text-main) !important; border-color: var(--border-color) !important; }
+    .modal-content { background-color: var(--bg-card) !important; color: var(--text-main) !important; border-radius: 16px; overflow: hidden; border: none; }
+    .modal-header { background-color: var(--table-thead) !important; border-bottom: 1px solid var(--border-color) !important; }
+    .modal-footer { border-top: 1px solid var(--border-color) !important; }
+    .unauthorized-screen { display:none; text-align:center; padding: 120px 20px; }
+  </style>
+</head>
+<body>
+
+<div id="unauthorizedView" class="unauthorized-screen container">
+  <i class="fas fa-exclamation-triangle text-danger fa-5x mb-4"></i>
+  <h1 class="fw-bold">ปฏิเสธการเข้าใช้งาน</h1>
+  <p class="lead text-muted">ระบบนี้อนุญาตให้ใช้งานได้เฉพาะบัญชีอีเมลที่ลงท้ายด้วย <strong>@dappmaker.co.th</strong> เท่านั้น</p>
+</div>
+
+<div id="mainAppView" class="container-fluid p-0">
+  <div class="row g-0">
+    
+    <div class="col-md-3 col-xl-2 sidebar-container border-end min-vh-100 p-4 d-flex flex-column justify-content-between">
+      <div>
+        <div class="mb-4 text-center text-md-start px-2">
+          <h4 class="fw-bold m-0 text-dark">
+            <i class="fas fa-boxes text-indigo me-2" style="color: #4f46e5;"></i>Inventory System
+          </h4>
+          <p class="text-muted small m-0" style="font-size: 11px;">Live Stuio</p>
+        </div>
+        <hr class="text-muted opacity-25">
+        
+        <ul class="nav nav-pills flex-column" id="mainTab">
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start active" data-bs-toggle="tab" data-bs-target="#stockTab" onclick="loadStock()">
+              <i class="fas fa-store me-2"></i>คลังของส่วนกลาง
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start" data-bs-toggle="tab" data-bs-target="#actionTab" onclick="loadRequests()">
+              <i class="fas fa-list-alt me-2"></i>รายการเบิก-ยืม
+            </button>
+          </li>
+          <li class="nav-item" id="menuAddProduct" style="display:none;">
+            <button class="nav-link w-100 text-start" data-bs-toggle="tab" data-bs-target="#addProductTab" onclick="fetchNextIdHint(); prepareRestockDropdown();">
+              <i class="fas fa-plus-circle text-success me-2"></i>จัดการของส่วนกลาง
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start" data-bs-toggle="tab" data-bs-target="#dashboardTab" onclick="loadWebDashboardSummary()">
+              <i class="fas fa-chart-pie me-2"></i>Dashboard <span id="lblViewScope" class="badge bg-light text-dark ms-1" style="font-size:10px;"></span>
+            </button>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="text-center text-muted small pt-3 border-top border-light-subtle" style="font-size:11px;">
+        &copy; 2026 dappmaker Co., Ltd.
+      </div>
+    </div>
+    
+    <div class="col-md-9 col-xl-10 p-4">
+      
+      <div class="top-action-bar d-flex flex-wrap justify-content-between align-items-center p-3 rounded-4 shadow-sm mb-4 gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <i class="fas fa-user-circle fa-2xl text-secondary"></i>
+          <div>
+            <span id="lblUser" class="fw-bold text-dark d-block" style="font-size: 14px; line-height: 1.2;">กำลังโหลด...</span>
+            <span class="badge bg-light text-primary border border-primary-subtle" id="lblRole" style="font-size: 10px;">--</span>
+          </div>
+        </div>
+        
+        <div class="d-flex flex-wrap gap-2">
+          <button class="btn btn-primary btn-sm rounded-pill px-3 py-2 fw-medium shadow-sm position-relative" data-bs-toggle="modal" data-bs-target="#cartModal" onclick="renderCart()">
+            <i class="fas fa-shopping-basket me-1"></i> ตะกร้า <span class="badge bg-danger rounded-pill ms-1" id="cartCount">0</span>
+          </button>
+          
+          <button class="btn btn-outline-info btn-sm rounded-pill px-3 py-2 fw-medium text-dark shadow-sm" id="btnManualGuide" onclick="triggerOpenManualGuideModal()">
+            <i class="fas fa-question-circle text-info me-1"></i> วิธีการใช้งานเว็บ
+          </button>
+          
+          <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-medium text-dark shadow-sm" id="btnThemeToggle" onclick="toggleApplicationInterfaceTheme()">
+            <i class="fas fa-moon me-1"></i> Dark Mode
+          </button>
+        </div>
+      </div>
+      
+      <div class="tab-content">
+        
+        <div class="tab-pane fade show active" id="stockTab">
+          <div class="row g-3 mb-4 align-items-center">
+            <div class="col-md-5">
+              <div class="input-group shadow-sm rounded-3 overflow-hidden">
+                <span class="input-group-text bg-white border-0"><i class="fas fa-search text-muted"></i></span>
+                <input type="text" class="form-control border-0 py-2" id="txtSearch" placeholder="พิมพ์ชื่อค้นหาของส่วนกลาง..." onkeyup="filterProducts()">
+              </div>
+            </div>
+            <div class="col-md-7 text-md-end">
+              <div class="btn-group shadow-sm bg-white p-1 rounded-3">
+                <button type="button" class="btn btn-sm btn-light border-0 px-3 py-2 btn-filter active" onclick="setCategoryFilter('All', this)">ทั้งหมด</button>
+                <button type="button" class="btn btn-sm btn-light border-0 px-3 py-2 btn-filter" onclick="setCategoryFilter('Office', this)">Office</button>
+                <button type="button" class="btn btn-sm btn-light border-0 px-3 py-2 btn-filter" onclick="setCategoryFilter('Canteen', this)">Canteen</button>
+                <button type="button" class="btn btn-sm btn-light border-0 px-3 py-2 btn-filter" onclick="setCategoryFilter('Cleaning', this)">Cleaning</button>
+              </div>
+            </div>
+          </div>
+          <div class="row" id="productGrid"></div>
+        </div>
+
+        <div class="tab-pane fade" id="actionTab">
+          <div class="card p-4 mb-4">
+            <h5 class="fw-bold text-dark mb-3"><i class="fas fa-sliders-h text-primary me-2"></i>เครื่องมือกรองข้อมูลรายการเบิกส่วนกลาง (Advanced Filters)</h5>
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label class="form-label small fw-bold text-secondary">ค้นหาด่วน (ชื่อผู้เบิก / รหัส / ชื่อพัสดุ)</label>
+                <input type="text" class="form-control form-control-sm py-2" id="filterGeneralSearch" placeholder="พิมพ์คำที่ต้องการค้นหา..." onkeyup="applyLogsFilter()">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label small fw-bold text-secondary">กรองช่วงเวลาด่วน</label>
+                <div class="btn-group w-100" role="group">
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-2 log-time-filter active" id="btnFilterAllTime" onclick="setTimeScopeFilter('All', this)">ทั้งหมด</button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-2 log-time-filter" onclick="setTimeScopeFilter('Today', this)">Today</button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-2 log-time-filter" onclick="setTimeScopeFilter('Week', this)">Week</button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-2 log-time-filter" onclick="setTimeScopeFilter('Month', this)">Month</button>
+                </div>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label small fw-bold text-secondary">ระบุวันที่ (เริ่ม - สิ้นสุด)</label>
+                <div class="input-group input-group-sm">
+                  <input type="date" class="form-control" id="filterStartDate" onchange="clearTimeScopeActive(); applyLogsFilter();">
+                  <input type="date" class="form-control" id="filterEndDate" onchange="clearTimeScopeActive(); applyLogsFilter();">
+                </div>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label small fw-bold text-secondary">ประเภทรายการ</label>
+                <select class="form-select form-select-sm py-2" id="filterTypeSelect" onchange="applyLogsFilter()">
+                  <option value="All">ทั้งหมด</option>
+                  <option value="เบิกพัสดุ">เฉพาะ "เบิกพัสดุ"</option>
+                  <option value="ยืมพัสดุ">เฉพาะ "ยืมพัสดุ"</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label small fw-bold text-secondary">สถานะคำขอ</label>
+                <select class="form-select form-select-sm py-2" id="filterStatusSelect" onchange="applyLogsFilter()">
+                  <option value="All">ทุกสถานะ</option>
+                  <option value="Pending">Pending (รออนุมัติ)</option>
+                  <option value="Approved">Approved (รอรับของ)</option>
+                  <option value="Received">Received (รับของแล้ว)</option>
+                  <option value="Partially Returned">ส่งคืนยังไม่หมด</option>
+                  <option value="Returned">Returned (คืนของครบแล้ว)</option>
+                  <option value="Rejected">Rejected (ถูกปฏิเสธ)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card p-0 overflow-hidden">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0" style="font-size:13.5px;">
+                <thead class="table-light">
+                  <tr>
+                    <th class="ps-3">เวลาขอรายการ</th>
+                    <th>ประเภท</th>
+                    <th>ชื่อผู้ขอเบิก/ยืม</th>
+                    <th>รายการพัสดุส่วนกลาง</th>
+                    <th>จำนวน</th>
+                    <th>เหตุผลความจำเป็น</th>
+                    <th>ผู้อนุมัติคำขอ</th>
+                    <th>ผู้รับของจริง</th>
+                    <th>ข้อมูลการส่งคืน / วันที่คืนของ</th>
+                    <th>สถานะ</th>
+                    <th class="pe-3">การจัดการคำขอ</th>
+                  </tr>
+                </thead>
+                <tbody id="requestTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade" id="addProductTab">
+          <div class="row g-4">
+            <div class="col-md-6">
+              <div class="card p-4 h-100 border-top border-primary border-4">
+                <h4 class="fw-bold mb-2 text-primary"><i class="fas fa-boxes me-2"></i>เติมจำนวนสต็อกพัสดุเดิม (Restock On Web)</h4>
+                <p class="text-muted small">ใช้สำหรับกรณีจัดซื้อของชนิดเดิมเข้ามาเพิ่มในคลัง สามารถเลือกสินค้าแล้วพิมพ์เติมสต็อกผ่านเว็บได้ทันที</p>
+                <form id="frmRestockProduct" onsubmit="submitRestockProduct(event)">
+                  <div class="mb-3">
+                    <label class="form-label fw-bold text-secondary small">เลือกรายการพัสดุที่จะเติมสต็อก</label>
+                    <select class="form-select py-2" id="restockProductSelect" required>
+                      <option value="">-- กำลังโหลดรายการพัสดุในคลัง --</option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label fw-bold text-secondary small">จำนวนชิ้นพัสดุที่ต้องการเติมเข้าคลัง</label>
+                    <input type="number" class="form-control fw-bold fs-5 text-center text-primary py-2" id="txtRestockQty" min="1" value="10" required>
+                  </div>
+                  <button type="submit" class="btn btn-primary w-100 fw-bold py-2.5 rounded-3"><i class="fas fa-plus-square me-2"></i>ยืนยันเติมพัสดุเข้าคลังสินค้า</button>
+                </form>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card p-4 h-100 border-top border-success border-4">
+                <h4 class="fw-bold mb-2 text-success"><i class="fas fa-box-open me-2"></i>ลงทะเบียนขึ้นระบบสินค้าใหม่แกะกล่อง</h4>
+                <p class="text-muted small">ใช้สำหรับลงทะเบียนของชิ้นใหม่ที่คลังของส่วนกลางไม่เคยมีรหัสพัสดุชิ้นนี้มาก่อน</p>
+                <form id="frmAddProduct" onsubmit="submitNewProduct(event)">
+                  <div class="mb-2"><label class="form-label fw-bold text-secondary small">ID สินค้าที่จะสร้าง</label><input type="text" class="form-control form-control-sm bg-light" id="newId" readonly></div>
+                  <div class="mb-2"><label class="form-label fw-bold text-secondary small">ชื่อสินค้า</label><input type="text" class="form-control form-control-sm" id="newName" placeholder="ระบุชื่อสินค้าใหม่" required></div>
+                  <div class="mb-2"><label class="form-label fw-bold text-secondary small">จำนวนสต็อกเริ่มต้น</label><input type="number" class="form-control form-control-sm" id="newQty" min="0" value="10" required></div>
+                  <div class="mb-2">
+                    <label class="form-label fw-bold text-secondary small">รูปภาพสินค้า</label>
+                    <input type="text" class="form-control form-control-sm mb-1" id="newImg" placeholder="รหัส Base64 จะถูกบันทึกอัตโนมัติเมื่อเลือกรูปภาพ">
+                    <div class="p-2 border border-dashed rounded bg-light text-center">
+                      <label for="localFileSelect" class="btn btn-xs btn-outline-dark mb-0 py-1 px-3 style-btn" style="font-size:11px; cursor:pointer;"><i class="fas fa-file-image me-1"></i> เลือกไฟล์ภาพจากคอม</label>
+                      <input type="file" id="localFileSelect" accept="image/*" style="display:none;" onchange="convertImageToBase64(this)">
+                      <div id="uploadStatusText" class="text-muted mt-1" style="font-size:10px;">ดึงภาพรวดเร็วด้วยระบบ Base64 แปลงรูปเบาเครื่อง</div>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label fw-bold text-secondary small">หมวดหมู่สินค้า</label>
+                    <select class="form-select form-select-sm" id="newCategory" required>
+                      <option value="Office">Office</option><option value="Canteen">Canteen</option><option value="Cleaning">Cleaning</option>
+                    </select>
+                  </div>
+                  <button type="submit" class="btn btn-success w-100 fw-bold rounded-3" id="btnSubmitProd">➕ ขึ้นระบบพัสดุชิ้นใหม่</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade" id="dashboardTab">
+          <div class="row g-4 mb-4">
+            <div class="col-md-3"><div class="p-4 stat-card stat-1 rounded-4 shadow-sm" style="background: linear-gradient(135deg, #4f46e5, #6366f1);"><h6>ของส่วนกลางในคลังทั้งหมด</h6><h2 id="lblTotalStock" class="fw-bold m-0">0</h2></div></div>
+            <div class="col-md-3"><div class="p-4 stat-card stat-2 rounded-4 shadow-sm" style="background: linear-gradient(135deg, #f43f5e, #fb7185);"><h6>ของส่วนกลางที่หมดสต็อก</h6><h2 id="lblOutStock" class="fw-bold m-0">0</h2></div></div>
+            <div class="col-md-3"><div class="p-4 stat-card stat-3 rounded-4 shadow-sm" style="background: linear-gradient(135deg, #10b981, #34d399);"><h6>รายการรอรับของ (Approved)</h6><h2 id="lblTotalApproved" class="fw-bold m-0">0</h2></div></div>
+            <div class="col-md-3"><div class="p-4 stat-card stat-4 rounded-4 shadow-sm" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);"><h6>คำขอรออนุมัติ (Pending)</h6><h2 id="lblTotalPending" class="fw-bold m-0">0</h2></div></div>
+          </div>
+          <div class="row g-4">
+            <div class="col-md-6">
+              <div class="card p-4 h-100">
+                <h5 class="fw-bold mb-3 text-dark"><i class="fas fa-clipboard-list text-primary me-2"></i>สรุปรายชื่อและรายการผู้เบิกพัสดุ</h5>
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                      <tr>
+                        <th width="15%">ลำดับ</th>
+                        <th>ชื่อผู้เบิก</th>
+                        <th>รายการ</th>
+                        <th class="text-center" width="25%">จำนวน (ชิ้น)</th>
+                      </tr>
+                    </thead>
+                    <tbody id="dashboardUserTable">
+                      <tr><td colspan="4" class="text-center text-muted">กำลังดึงข้อมูลประวัติเรียลไทม์...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card p-4 h-100">
+                <h5 class="fw-bold mb-3 text-dark"><i class="fas fa-chart-pie text-primary me-2"></i>สัดส่วนพัสดุในระบบคลัง</h5>
+                <div id="piechart_3d" style="width: 100%; height: 300px;"><div class="text-center text-muted pt-5">กำลังประมวลผลกราฟ...</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="manualGuideModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold text-indigo"><i class="fas fa-book-reader me-2"></i>คู่มือขั้นตอนการใช้งานระบบ dappmaker Inventory</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4" id="manualGuideRenderBox">
+        </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary px-4 rounded-pill" data-bs-dismiss="modal">รับทราบคู่มือ</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="addItemSetupModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold text-primary"><i class="fas fa-cart-plus me-2"></i>ระบุรายละเอียดคำขอพัสดุส่วนกลาง</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <h6 id="setupItemName" class="fw-bold text-dark mb-1 fs-5">--ชื่อสินค้า--</h6>
+        <small class="badge bg-secondary-subtle text-secondary d-inline-block mb-4" id="setupItemMax">คงเหลือ: -- ชิ้น</small>
+        <div class="mb-3">
+          <label class="form-label fw-bold text-danger small">รูปแบบการขอรายการ</label>
+          <div class="d-flex gap-4 p-2 rounded bg-light border">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="radRequestType" id="typeBeg" value="เบิกพัสดุ" checked>
+              <label class="form-check-label fw-bold text-dark" for="typeBeg">📦 เบิกพัสดุ (ใช้หมดไป)</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="radRequestType" id="typeYum" value="ยืมพัสดุ">
+              <label class="form-check-label fw-bold text-primary" for="typeYum">🔄 ยืมพัสดุ (ต้องนำมาคืนคลัง)</label>
+            </div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold small">จำนวนที่ต้องการเบิก/ยืม</label>
+          <div class="input-group shadow-sm" style="width:160px;">
+            <button class="btn btn-outline-secondary fw-bold" type="button" onclick="adjustSetupQty(-1)">-</button>
+            <input type="number" class="form-control text-center fw-bold" id="setupQtyInput" value="1" min="1">
+            <button class="btn btn-outline-secondary fw-bold" type="button" onclick="adjustSetupQty(1)">+</button>
+          </div>
+        </div>
+        <div class="mb-3"><label class="form-label fw-bold small">เหตุผลความจำเป็นในการนำไปใช้งาน <span class="text-danger">*</span></label><input type="text" class="form-control py-2" id="setupReasonInput" placeholder="ระบุเหตุผลความจำเป็นและสถานที่ใช้งาน" required></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">ยกเลิก</button>
+        <button type="button" class="btn btn-primary fw-bold px-4" onclick="confirmAddToCart()">เพิ่มลงตะกร้า</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="cartModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-dark text-white"><h5 class="modal-title fw-bold"><i class="fas fa-shopping-basket me-2"></i>รายการสินค้าในตะกร้าเตรียมส่งคำขอ</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body bg-light" id="cartContainer"></div>
+      <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">เลือกเพิ่มเติม</button><button type="button" class="btn btn-primary fw-bold px-4" id="btnCheckout" onclick="checkoutCart()">ยืนยันส่งคำขอพร้อมกัน</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="returnItemModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-light text-dark">
+        <h5 class="modal-title fw-bold"><i class="fas fa-undo me-2"></i>ฟอร์มส่งของคืนคลังสินค้าส่วนกลาง</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <h6 id="lblReturnItemTitle" class="fw-bold text-primary fs-5">--ชื่อสินค้า--</h6>
+        <p class="small text-muted mb-3" id="lblReturnItemMax">จำนวนที่ทำรายการไป: -- ชิ้น</p>
+        <input type="hidden" id="txtReturnRowID">
+        <div class="mb-3">
+          <label class="form-label fw-bold small">จำนวนของที่จะส่งคืนกลับเข้าคลัง</label>
+          <input type="number" class="form-control fw-bold text-center border-primary fs-5 py-2" id="txtReturnQty" min="1" value="1" style="width:140px;">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold small">บันทึกรายละเอียด/เหตุผลการส่งคืน <span class="text-danger">*</span></label>
+          <input type="text" class="form-control py-2" id="txtReturnReason" placeholder="ระบุเหตุผล เช่น งานเสร็จสิ้นส่งคืนของยืมสภาพสมบูรณ์">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+        <button type="button" class="btn btn-success fw-bold px-4" onclick="submitReturnAction()">ยืนยันบันทึกคืนพัสดุ</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
+  <div id="liveToast" class="toast align-items-center text-white border-0 shadow-lg" role="alert" style="border-radius: 12px;">
+    <div class="d-flex">
+      <div class="toast-body fw-medium" id="toastBody"></div>
+      <button type="button" class="btn-close btn-close-white m-auto me-2" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  var currentUser = null; var allProducts = []; var cachedRequests = []; var cart = []; var currentCategoryFilter = "All"; var activeSetupItem = null; var activeReturnMax = 0;
+  var currentLogTimeFilter = "All";
+  
+  window.onload = function() {
+    google.script.run.withSuccessHandler(function(user){
+      currentUser = user;
+      document.getElementById('lblUser').innerText = user.nickname;
+      document.getElementById('lblRole').innerText = user.role;
+      if(user.role !== 'Agent') {
+        document.getElementById('menuAddProduct').style.display = 'block';
+      }
+      loadStock(); // First screen initialized: 1. คลังสินค้า
+      
+      // Pre-fetch active logs instantly to render custom user analytics summary
+      google.script.run.withSuccessHandler(function(data){
+        cachedRequests = data;
+      }).getActiveRequests();
+    }).getCurrentUserInfo();
+  };
+  
+  function fetchNextIdHint() { google.script.run.withSuccessHandler(id => document.getElementById('newId').value = id).getNextProductId(); }
+  
+  function loadStock() { 
+    google.script.run.withSuccessHandler(p => { 
+      allProducts = p; 
+      renderProducts(); 
+      prepareRestockDropdown(); 
+    }).getStockList(); 
+  }
+  
+  function prepareRestockDropdown() {
+    var select = document.getElementById('restockProductSelect');
+    if(!select) return;
+    if(allProducts.length === 0) {
+      google.script.run.withSuccessHandler(p => { allProducts = p; fillDropdown(); }).getStockList();
+    } else { fillDropdown(); }
+    function fillDropdown() {
+      select.innerHTML = '<option value="">-- เลือกพัสดุรหัสที่มีอยู่แล้วในระบบเพื่อเพิ่มจำนวน --</option>';
+      allProducts.forEach(item => {
+        select.innerHTML += `<option value="${item.id}">[${item.id}] ${item.name} (คลังเหลืออยู่เดิม: ${item.qty} ชิ้น)</option>`;
+      });
+    }
+  }
+  
+  function submitRestockProduct(e) {
+    e.preventDefault();
+    var id = document.getElementById('restockProductSelect').value;
+    var qty = parseInt(document.getElementById('txtRestockQty').value) || 0;
+    if(!id) { alert("⚠️ กรุณาเลือกพัสดุที่ต้องการเติมสต็อกก่อนครับ"); return; }
+    showToast("⏳ กำลังดำเนินการเติมสต็อกพัสดุ...", "warning");
+    google.script.run.withSuccessHandler(res => {
+      if(res.success) {
+        showToast(res.message, "success");
+        document.getElementById('frmRestockProduct').reset();
+        loadStock();
+      } else { alert(res.message); }
+    }).restockExistingProduct(id, qty);
+  }
+  
+  function convertImageToBase64(input) {
+    var file = input.files[0]; if(!file) return;
+    document.getElementById('uploadStatusText').innerHTML = "⏳ กำลังประมวลผลรูปภาพ...";
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('newImg').value = e.target.result;
+      document.getElementById('uploadStatusText').innerHTML = "✅ ดึงรูปภาพสำเร็จ!";
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function renderProducts() {
+    var grid = document.getElementById('productGrid'); var searchTxt = document.getElementById('txtSearch').value.toLowerCase(); grid.innerHTML = '';
+    var canDelete = (currentUser && currentUser.role !== 'Agent');
+    allProducts.forEach(item => {
+      if((item.name.toLowerCase().includes(searchTxt) || item.id.toLowerCase().includes(searchTxt)) && (currentCategoryFilter === "All" || item.category === currentCategoryFilter)) {
+        var isOut = item.qty <= 0;
+        grid.innerHTML += `
+          <div class="col-xl-3 col-lg-4 col-md-6 mb-4" id="card-${item.id}">
+            <div class="card h-100 position-relative border-0 overflow-hidden product-card">
+              ${canDelete ? `<button class="btn btn-danger btn-sm rounded-circle delete-btn shadow" onclick="triggerDeleteProduct('${item.id}', '${item.name}')" title="ลบออกจากคลังถาวร"><i class="fas fa-trash-alt"></i></button>` : ''}
+              <span class="badge ${isOut ? 'bg-secondary text-white':'bg-dark text-white'} stock-badge">คงเหลือ: ${item.qty}</span>
+              <div style="background: #f1f5f9; text-align:center;">
+                <img src="${item.img}" class="card-img-top">
+              </div>
+              <div class="card-body d-flex flex-column justify-content-between text-center p-3">
+                <div>
+                  <span class="category-pill">${item.category}</span>
+                  <h6 class="fw-bold text-dark mb-1 text-truncate">${item.name}</h6>
+                  <small class="text-muted d-block mb-1 font-monospace" style="font-size:12px;">ID: ${item.id}</small>
+                  <small class="text-secondary d-block mb-3" style="font-size:11px;"><i class="fas fa-user-edit me-1"></i>ผู้เพิ่ม: ${item.addedBy}</small>
+                </div>
+                <button class="btn btn-sm ${isOut ? 'btn-secondary' : 'btn-outline-primary'} w-100 py-2 rounded-3 fw-medium" ${isOut ? 'disabled':''} onclick="openAddToCartSetup('${item.id}','${item.name}',${item.qty})">${isOut ? '❌ ของหมดคลัง':'กดเลือกรายการ'}</button>
+              </div>
+            </div>
+          </div>`;
+      }
+    });
+  }
+  
+  function triggerDeleteProduct(id, name) {
+    if(confirm(`⚠️ แน่ใจใช่หรือไม่ว่าต้องการลบสินค้า "${name}" (ID: ${id}) ออกจากคลังพัสดุถาวร?`)) {
+      showToast("⏳ กำลังลบรายการสินค้า...", "warning");
+      google.script.run.withSuccessHandler(function(res){
+        if(res.success){ showToast(res.message, "success"); loadStock(); } else { alert(res.message); }
+      }).deleteProduct(id);
+    }
+  }
+  
+  function filterProducts() { renderProducts(); }
+  function setCategoryFilter(cat, btn) { currentCategoryFilter = cat; document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderProducts(); }
+  
+  function openAddToCartSetup(id, name, max) { 
+    if(cart.find(c => c.id === id)) { showToast("ของชิ้นนี้อยู่ในตะกร้าแล้ว", "warning"); return; } 
+    activeSetupItem = { id: id, name: name, max: max }; 
+    document.getElementById('setupItemName').innerText = name; 
+    document.getElementById('setupItemMax').innerText = "คงเหลือในสต็อกคลัง: " + max + " ชิ้น"; 
+    document.getElementById('setupQtyInput').value = 1; 
+    document.getElementById('setupReasonInput').value = ""; 
+    new bootstrap.Modal(document.getElementById('addItemSetupModal')).show(); 
+  }
+  
+  function adjustSetupQty(amt) { var input = document.getElementById('setupQtyInput'); var val = (parseInt(input.value) || 1) + amt; if(val >= 1 && val <= activeSetupItem.max) input.value = val; }
+  
+  function confirmAddToCart() {
+    var qty = parseInt(document.getElementById('setupQtyInput').value) || 1; var reason = document.getElementById('setupReasonInput').value.trim();
+    var type = document.querySelector('input[name="radRequestType"]:checked').value;
+    if(!reason) { alert("⚠️ กรุณาระบุเหตุผลและสถานที่นำพัสดุไปใช้งานจริงด้วยครับ"); return; }
+    cart.push({ id: activeSetupItem.id, name: activeSetupItem.name, max: activeSetupItem.max, qty: qty, reason: reason, requestType: type });
+    document.getElementById('cartCount').innerText = cart.length;
+    bootstrap.Modal.getInstance(document.getElementById('addItemSetupModal')).hide();
+    showToast(`🛒 ใส่ลงตะกร้า (${type}) เรียบร้อยแล้ว`, "success");
+  }
+  
+  function renderCart() {
+    var con = document.getElementById('cartContainer'); if(cart.length === 0) { con.innerHTML = '<div class="text-center py-5 text-muted">ไม่มีรายการของในตะกร้าสินค้าของคุณ</div>'; document.getElementById('btnCheckout').disabled = true; return; }
+    document.getElementById('btnCheckout').disabled = false; con.innerHTML = '';
+    cart.forEach((item, index) => {
+      con.innerHTML += `
+        <div class="card p-3 mb-2 border-0 shadow-sm rounded-3"><div class="row align-items-center"><div class="col-md-4"><span class="badge bg-indigo-subtle text-primary border mb-1" style="font-size:10px;">${item.requestType}</span><h6 class="fw-bold mb-0 text-dark">${item.name}</h6><small class="text-muted font-monospace" style="font-size:11px;">ID: ${item.id}</small></div><div class="col-md-3"><div class="input-group input-group-sm"><button class="btn btn-outline-secondary" onclick="changeCartQty(${index},-1)">-</button><input type="text" class="form-control text-center bg-white fw-bold" value="${item.qty}" readonly><button class="btn btn-outline-secondary" onclick="changeCartQty(${index},1)">+</button></div></div><div class="col-md-4"><input type="text" class="form-control form-control-sm py-1.5" placeholder="เหตุผลจำเป็น" value="${item.reason}" onchange="cart[${index}].reason=this.value"></div><div class="col-md-1 text-end"><button class="btn btn-sm text-danger" onclick="cart.splice(${index},1); renderCart(); document.getElementById('cartCount').innerText=cart.length;"><i class="fas fa-trash"></i></button></div></div></div>`;
+    });
+  }
+  
+  function changeCartQty(i, amt) { var n = cart[i].qty + amt; if(n >= 1 && n <= cart[i].max) { cart[i].qty = n; renderCart(); } }
+  function checkoutCart() { document.getElementById('btnCheckout').disabled = true; sendCheckout(0); }
+  
+  function sendCheckout(idx) {
+    if(idx >= cart.length) { showToast("ส่งใบเบิก-ยืมพัสดุเรียบร้อย และระบบเริ่มส่ง Noti Email", "success"); cart = []; document.getElementById('cartCount').innerText = 0; bootstrap.Modal.getInstance(document.getElementById('cartModal')).hide(); loadRequests(); return; }
+    google.script.run.withSuccessHandler(() => sendCheckout(idx + 1)).processRequisition({ name: currentUser.nickname, email: currentUser.email, itemID: cart[idx].id, qty: cart[idx].qty, reason: cart[idx].reason, requestType: cart[idx].requestType });
+  }
+  
+  function loadRequests() {
+    google.script.run.withSuccessHandler(function(data){
+      cachedRequests = data;
+      applyLogsFilter();
+    }).getActiveRequests();
+  }
+  
+  function setTimeScopeFilter(scope, btn) {
+    currentLogTimeFilter = scope;
+    document.querySelectorAll('.log-time-filter').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('filterStartDate').value = '';
+    document.getElementById('filterEndDate').value = '';
+    applyLogsFilter();
+  }
+  
+  function clearTimeScopeActive() { currentLogTimeFilter = 'Custom'; document.querySelectorAll('.log-time-filter').forEach(b => b.classList.remove('active')); }
+  
+  function applyLogsFilter() {
+    var tbody = document.getElementById('requestTable'); tbody.innerHTML = '';
+    var searchTxt = document.getElementById('filterGeneralSearch').value.toLowerCase();
+    var typeFilter = document.getElementById('filterTypeSelect').value;
+    var statusFilter = document.getElementById('filterStatusSelect').value;
+    var startDateVal = document.getElementById('filterStartDate').value;
+    var endDateVal = document.getElementById('filterEndDate').value;
+    
+    var now = new Date();
+    var startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var startOfWeek = new Date(startOfToday.getTime() - (now.getDay() * 24 * 60 * 60 * 1000));
+    var startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    cachedRequests.forEach(req => {
+      if(currentUser.role === 'Agent' && req.name !== currentUser.nickname) return;
+      var matchSearch = req.name.toLowerCase().includes(searchTxt) || req.itemName.toLowerCase().includes(searchTxt) || req.itemID.toLowerCase().includes(searchTxt) || req.rowID.toLowerCase().includes(searchTxt);
+      if(!matchSearch) return;
+      if(typeFilter !== "All" && req.requestType !== typeFilter) return;
+      if(statusFilter !== "All" && req.status !== statusFilter) return;
+      
+      var logDate = new Date(req.isoDate);
+      if(currentLogTimeFilter === 'Today' && logDate < startOfToday) return;
+      if(currentLogTimeFilter === 'Week' && logDate < startOfWeek) return;
+      if(currentLogTimeFilter === 'Month' && logDate < startOfMonth) return;
+      
+      var logYear = logDate.getFullYear();
+      var logMonth = String(logDate.getMonth() + 1).padStart(2, '0');
+      var logDay = String(logDate.getDate()).padStart(2, '0');
+      var logDateStr = logYear + '-' + logMonth + '-' + logDay;
+      
+      if(currentLogTimeFilter === 'Custom' || (!currentLogTimeFilter && (startDateVal || endDateVal))) {
+        if(startDateVal && logDateStr < startDateVal) return;
+        if(endDateVal && logDateStr > endDateVal) return;
+      }
+      
+      var statusBadge = '', actionButtons = '';
+      var typeBadge = req.requestType === 'ยืมพัสดุ' ? '<span class="badge bg-primary-subtle text-primary border border-primary-subtle badge-pill-custom">🔄 ยืมพัสดุ</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle badge-pill-custom">📦 เบิกพัสดุ</span>';
+      
+      if (req.status === 'Pending') {
+        statusBadge = '<span class="badge bg-warning text-dark badge-pill-custom"><i class="fas fa-clock me-1"></i>รออนุมัติ</span>';
+        if(currentUser.role !== 'Agent') {
+          actionButtons = `<button class="btn btn-xs btn-success py-1 px-2 me-1" style="font-size:11px; border-radius:6px;" onclick="handleAction('${req.rowID}','Approve')">อนุมัติ</button><button class="btn btn-xs btn-danger py-1 px-2" style="font-size:11px; border-radius:6px;" onclick="handleAction('${req.rowID}','Reject')">ปฏิเสธ</button>`;
+        }
+      } else if (req.status === 'Approved') {
+        statusBadge = '<span class="badge bg-info text-dark badge-pill-custom"><i class="fas fa-check-circle me-1"></i>รอรับของ</span>';
+        if(currentUser.nickname === req.name || currentUser.role !== 'Agent') {
+          actionButtons = `<button class="btn btn-xs btn-primary py-1 px-2" style="font-size:11px; border-radius:6px;" onclick="handleAction('${req.rowID}','Complete')">ยืนยันรับของ</button>`;
+        }
+      } else if (req.status === 'Received') {
+        statusBadge = '<span class="badge bg-success text-white badge-pill-custom"><i class="fas fa-box me-1"></i>รับของแล้ว</span>';
+        if(req.requestType === 'ยืมพัสดุ') {
+          actionButtons = `<button class="btn btn-xs btn-outline-secondary py-1 px-2" style="font-size:11px; border-radius:6px;" onclick="openReturnForm('${req.rowID}', '${req.itemName}', ${req.qty})"><i class="fas fa-undo me-1"></i>คืนพัสดุ</button>`;
+        }
+      } else if (req.status === 'Partially Returned') {
+        statusBadge = '<span class="badge bg-dark text-warning border border-warning badge-pill-custom">ส่งคืนยังไม่หมด</span>';
+        actionButtons = `<button class="btn btn-xs btn-outline-secondary py-1 px-2" style="font-size:11px; border-radius:6px;" onclick="openReturnForm('${req.rowID}', '${req.itemName}', ${req.qty})"><i class="fas fa-undo me-1"></i>ส่งคืนเพิ่ม</button>`;
+      } else if (req.status === 'Returned') { statusBadge = '<span class="badge bg-secondary text-white badge-pill-custom">คืนของครบแล้ว</span>';
+      } else if (req.status === 'Rejected') { statusBadge = '<span class="badge bg-danger text-white badge-pill-custom">ถูกปฏิเสธ</span>'; }
+
+      tbody.innerHTML += `
+        <tr>
+          <td class="ps-3"><small class="text-muted d-block">${req.timestamp.split(' ')[0]}</small><small class="text-secondary" style="font-size:11px;">${req.timestamp.split(' ')[1] || ''}</small></td>
+          <td>${typeBadge}</td><td><strong>${req.name}</strong></td>
+          <td><span class="text-dark fw-medium">${req.itemName}</span><br><small class="text-muted font-monospace" style="font-size:11px;">ID: ${req.itemID}</small></td>
+          <td><span class="badge bg-light text-dark border px-2 py-1 fw-bold">${req.qty} ชิ้น</span></td>
+          <td><small class="text-muted">${req.reason}</small></td><td><span class="text-success fw-medium">${req.approver || '-'}</span></td><td><span class="text-primary fw-medium">${req.receiver || '-'}</span></td>
+          <td>
+            ${(req.status === 'Returned' || req.status === 'Partially Returned') ? `
+              <div class="p-1 rounded bg-light border" style="font-size:11px; line-height:1.3;">
+                <span class="text-danger fw-bold">คืนแล้ว: ${req.returnQty} ชิ้น</span><br><span class="text-muted">เหตุผล: ${req.returnReason}</span><br><span class="text-dark font-monospace" style="font-size:10px;">📅 ${req.returnDate}</span>
+              </div>` : '<span class="text-muted">-</span>'}
+          </td>
+          <td>${statusBadge}</td><td class="pe-3">${actionButtons || '-'}</td>
+        </tr>`;
+    });
+  }
+
+  function openReturnForm(rowID, itemName, maxQty) {
+    activeReturnMax = maxQty; document.getElementById('txtReturnRowID').value = rowID;
+    document.getElementById('lblReturnItemTitle').innerText = itemName;
+    document.getElementById('lblReturnItemMax').innerText = "จำนวนที่ทำรายการไป: " + maxQty + " ชิ้น";
+    document.getElementById('txtReturnQty').value = 1; document.getElementById('txtReturnQty').max = maxQty; document.getElementById('txtReturnReason').value = "";
+    new bootstrap.Modal(document.getElementById('returnItemModal')).show();
+  }
+
+  function submitReturnAction() {
+    var rowID = document.getElementById('txtReturnRowID').value;
+    var retQty = parseInt(document.getElementById('txtReturnQty').value) || 0;
+    var retReason = document.getElementById('txtReturnReason').value.trim();
+    if(retQty <= 0 || retQty > activeReturnMax) { alert(`⚠️ ระบุจำนวนคืนให้ถูกต้อง (ห้ามเกิน ${activeReturnMax} ชิ้น)`); return; }
+    if(!retReason) { alert("⚠️ กรุณาระบุรายละเอียดหรือเหตุผลการส่งคืนด้วยครับ"); return; }
+    bootstrap.Modal.getInstance(document.getElementById('returnItemModal')).hide();
+    showToast("⏳ กำลังบันทึกการส่งคืนพัสดุและส่ง Noti Email...", "warning");
+    google.script.run.withSuccessHandler(function(res){
+      if(res.success) { showToast(res.message, "success"); loadRequests(); } 
+    }).updateStatus(rowID, "Return", { returnQty: retQty, returnReason: retReason });
+  }
+
+  function handleAction(rowID, action) {
+    if(action === 'Reject') {
+      var r = prompt("ระบุเหตุผลการปฏิเสธคำขอ:"); if(!r) return; executeAction(rowID, action, r);
+    } else { if(confirm("ยืนยันการทำรายการพัสดุชิ้นนี้?")) executeAction(rowID, action, ""); }
+  }
+
+  function executeAction(rowID, action, reason) { 
+    showToast("⏳ กำลังประมวลผลข้อมูลและส่งอีเมลแจ้งเตือน...", "warning");
+    google.script.run.withSuccessHandler(res => { if(res.success) { showToast(res.message, "success"); loadRequests(); } }).updateStatus(rowID, action, reason); 
+  }
+
+  function submitNewProduct(e) {
+    e.preventDefault(); var name = document.getElementById('newName').value.trim(); var qty = parseInt(document.getElementById('newQty').value); var img = document.getElementById('newImg').value.trim(); var cat = document.getElementById('newCategory').value;
+    showToast("⏳ กำลังบันทึกสินค้าใหม่...", "warning");
+    google.script.run.withSuccessHandler(res => {
+      if(res.success) { showToast(res.message, "success"); document.getElementById('frmAddProduct').reset(); document.getElementById('uploadStatusText').innerHTML = "ดึงภาพรวดเร็วด้วยระบบ Base64 แปลงรูปเบาเครื่อง"; loadStock(); } else { alert(res.message); }
+    }).addNewProduct(name, qty, img, cat);
+  }
+
+  /* 📊 RENDER DASHBOARD ANALYSIS AND REQUISITIONS SPECIFIED SUMMARY TABLE */
+  function loadWebDashboardSummary() {
+    google.script.run.withSuccessHandler(function(res){
+      if(res.success) {
+        document.getElementById('lblViewScope').innerText = res.viewMode;
+        document.getElementById('lblTotalStock').innerText = res.totalItemsInStock;
+        document.getElementById('lblOutStock').innerText = res.outOfStockCount;
+        document.getElementById('lblTotalApproved').innerText = res.totalApprovedRequests;
+        document.getElementById('lblTotalPending').innerText = res.totalPendingRequests;
+        
+        // Render: ลำดับ | ชื่อผู้เบิก | รายการ | จำนวน (ตามความต้องการที่ระบุ)
+        var tbody = document.getElementById('dashboardUserTable');
+        tbody.innerHTML = '';
+        if(!cachedRequests || cachedRequests.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">ไม่พบข้อมูลประวัติการทำรายการเบิก</td></tr>';
+        } else {
+          var indexCount = 0;
+          cachedRequests.forEach(function(req) {
+            if(indexCount >= 7) return; // Limit total items on preview for clean spacing
+            indexCount++;
+            tbody.innerHTML += `
+              <tr>
+                <td><span class="badge bg-light text-dark border">${indexCount}</span></td>
+                <td><strong>${req.name}</strong></td>
+                <td><span class="text-dark fw-medium">${req.itemName}</span></td>
+                <td class="text-center"><span class="badge bg-primary-subtle text-primary border px-2 py-1 fw-bold">${req.qty} ชิ้น</span></td>
+              </tr>`;
+          });
+        }
+        
+        if (google.visualization) { drawChart(res.totalItemsInStock, res.outOfStockCount, res.totalApprovedRequests); }
+      }
+    }).getDashboardSummary();
+  }
+
+  function drawChart(totalStock, outStock, approved) {
+    var data = google.visualization.arrayToDataTable([ ['สถิติ', 'จำนวน'], ['สินค้าพร้อมเบิก', totalStock], ['สินค้าหมดคลัง', outStock], ['รอรับของ', approved] ]);
+    var chart = new google.visualization.PieChart(document.getElementById('piechart_3d'));
+    var isDark = document.body.classList.contains('dark-theme');
+    chart.draw(data, { 
+      is3D: true, colors: ['#4f46e5', '#f43f5e', '#10b981'], chartArea: { width: '100%', height: '80%' }, 
+      backgroundColor: isDark ? '#1e293b' : '#ffffff',
+      legend: { position: 'bottom', textStyle: { fontName: 'Prompt', fontSize: 12, color: isDark ? '#f1f5f9' : '#334155' } } 
+    });
+  }
+
+  /* 💡 ROLE-BASED APPLICATION USER MANUAL ACTION */
+  function triggerOpenManualGuideModal() {
+    var renderBox = document.getElementById('manualGuideRenderBox');
+    var userRole = (currentUser && currentUser.role) ? currentUser.role : 'Agent';
+    
+    if(userRole === 'Agent') {
+      renderBox.innerHTML = `
+        <div class="alert alert-primary d-flex align-items-center mb-3"><i class="fas fa-info-circle fa-lg me-2"></i><strong>สิทธิ์พนักงานทั่วไป (Agent Mode)</strong></div>
+        <h6 class="fw-bold text-dark">ขั้นตอนหลักในการทำรายการ เบิก-ยืม พัสดุ:</h6>
+        <ol class="text-muted style-guide-list" style="font-size:14px; line-height:1.8;">
+          <li>เลือกแถบเมนู <strong>"1. คลังสินค้า"</strong> เพื่อตรวจสอบรายการสิ่งของและจำนวนคงเหลือ</li>
+          <li>คลิกปุ่ม <span class="badge bg-outline-primary text-primary border">กดเลือกรายการ</span> บนสิ่งของที่ต้องการนำไปใช้งาน</li>
+          <li>เลือกรูปแบบความต้องการ (<strong>เบิกพัสดุ</strong> แบบใช้หมดไป หรือ <strong>ยืมพัสดุ</strong> แบบนำมาส่งคืนภายหลัง)</li>
+          <li>พิมพ์ตัวเลขจำนวน และ<strong>ระบุเหตุผลความจำเป็น</strong>ให้ชัดเจนเพื่อประโยชน์ในการอนุมัติ จากนั้นคลิกปุ่มใส่ลงตะกร้า</li>
+          <li>เมื่อเลือกของครบแล้ว ให้คลิกปุ่ม <strong>"ตะกร้าเตรียมขอ"</strong> ด้านบนเพื่อตรวจสอบรายการทั้งหมดอีกครั้ง แล้วกดส่งใบคำขอ</li>
+          <li>สามารถติดตามสเตตัสผลการพิจารณาอนุมัติผ่านแถบเมนู <strong>"2. ประวัติการเบิก"</strong> ได้ตลอดเวลาครับ</li>
+        </ol>
+      `;
+    } else {
+      renderBox.innerHTML = `
+        <div class="alert alert-success d-flex align-items-center mb-3"><i class="fas fa-shield-alt fa-lg me-2"></i><strong>สิทธิ์ผู้ดูแลระบบ (Admin / Manager Mode)</strong></div>
+        <h6 class="fw-bold text-dark mb-2">ขั้นตอนบริหารจัดการระบบคลัง:</h6>
+        <ul class="text-muted" style="font-size:14px; line-height:1.8;">
+          <li><strong>การอนุมัติพัสดุ:</strong> เข้าเมนู <strong>"2. ประวัติการเบิก"</strong> แล้วกดปุ่ม <span class="badge bg-success">อนุมัติ</span> หรือ <span class="badge bg-danger">ปฏิเสธคำขอ</span></li>
+          <li><strong>การเติมสต็อกเดิม:</strong> เข้าเมนู <strong>"3. จัดการพัสดุ"</strong> ฝั่งซ้าย เลือกชื่อพัสดุเดิม แล้วใส่จำนวนเลขเพื่อเพิ่มเข้าคลังทันที</li>
+          <li><strong>การเพิ่มพัสดุชนิดใหม่:</strong> กรอกฟอร์มฝั่งขวาในเมนูจัดการพัสดุ เลือกไฟล์ภาพจากเครื่อง ระบบจะแปลงเป็น Base64 และขึ้นทะเบียนรหัสถัดไปให้โดยอัตโนมัติ</li>
+          <li><strong>การเรียกดูสถิติ:</strong> แถบเมนู <strong>"4. แดชบอร์ด"</strong> จะประมวลผลกราฟสัดส่วนสิ่งของพร้อมรายงานรายชื่อผู้ใช้บริการเบิกของ</li>
+        </ul>
+      `;
+    }
+    new bootstrap.Modal(document.getElementById('manualGuideModal')).show();
+  }
+
+  /* 🌗 LIGHT / DARK INTERFACE THEME ALTERNATION FUNCTION */
+  function toggleApplicationInterfaceTheme() {
+    var body = document.body;
+    var btn = document.getElementById('btnThemeToggle');
+    if(body.classList.contains('dark-theme')) {
+      body.classList.remove('dark-theme');
+      btn.innerHTML = '<i class="fas fa-moon me-1"></i> Dark Mode';
+      btn.className = "btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-medium text-dark shadow-sm";
+    } else {
+      body.classList.add('dark-theme');
+      btn.innerHTML = '<i class="fas fa-sun text-warning me-1"></i> Light Mode';
+      btn.className = "btn btn-outline-warning btn-sm rounded-pill px-3 py-2 fw-medium text-white shadow-sm";
+    }
+    // Automatically re-render data visualization graphics if active on display
+    loadWebDashboardSummary();
+  }
+
+  function showToast(msg, type) { 
+    var t = document.getElementById('liveToast'); t.className = `toast align-items-center text-white bg-${type} border-0 shadow-lg`; 
+    document.getElementById('toastBody').innerText = msg; new bootstrap.Toast(t, { delay: 4000 }).show(); 
+  }
+</script>
+</body>
+</html>
